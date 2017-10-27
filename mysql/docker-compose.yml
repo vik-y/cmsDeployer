@@ -1,0 +1,39 @@
+mysqldb:
+  # use the preferred version of the official mysql image
+  # see https://hub.docker.com/_/mysql/
+  image: mysql
+  container_name: mysqldb
+  # Setup a mysql root password
+  environment:
+  - MYSQL_ROOT_PASSWORD=changemeplease
+
+  # persist the database between containers by storing it in a volume
+  # You have to use a volume for storing your mysql databases.
+  volumes:
+  - ./data:/var/lib/mysql
+  - ./mysql.conf.d:/etc/mysql/mysql.conf.d
+
+  # In case if you want to connect to mysql from outside docker you have
+  # to expose a port. In this case I am mapping port 3310 of my system to
+  # port 3306 of this container.
+
+  # Exposing this port will make it reachable for the phpmyadmin container
+  expose:
+  - "3306"
+  restart: always
+
+# Service configuration for phpmyadmin
+phpmyadmin:
+  image: phpmyadmin/phpmyadmin
+  # This will provide network connectivity between the phpmyadmin container
+  # and mysql container.
+  container_name: phpmyadmin
+  links:
+    - mysqldb
+  environment:
+    - PMA_ARBITRARY=1
+    - VIRTUAL_HOST=phpmyadmin.iiitb.org
+    # Change the above to your domain
+  restart: always
+  ports:
+    - "8080:80"
